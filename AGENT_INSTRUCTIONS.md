@@ -59,7 +59,9 @@ absolute GFLOPS threshold.
 | `optimization_log.md` | Full journal. Read at start of every iteration. |
 | `perf_history.csv` | One row per iteration. Append only. |
 | `agent_status.txt` | `CONTINUE` or `STOP: <reason>`. Overwrite each iter. |
-| `hw4_skeleton/kernels/student_kernel_backup.cu` | Rollback target. Overwrite before every edit. |
+| `hw4_skeleton/kernels/student_kernel.cu` | Live kernel. Overwritten every iteration. |
+| `hw4_skeleton/kernels/student_kernel_backup.cu` | Rollback target. Overwritten before every edit. |
+| `hw4_skeleton/kernels/iter_N_<title>.cu` | Permanent archive of each attempted kernel. Never deleted. |
 
 ---
 
@@ -156,7 +158,7 @@ Confirm the copy succeeded before proceeding.
 
 ---
 
-### Step 5 — Implement
+### Step 5 — Implement and Archive
 
 Edit `hw4_skeleton/kernels/student_kernel.cu`.
 
@@ -164,6 +166,14 @@ Rules:
 - Change exactly what the plan in Step 3 described. Do not add unplanned changes.
 - Keep code readable. Future iterations build on this.
 - Do not add comments that describe what the code does. Comments are only for non-obvious constraints or invariants.
+
+After editing, immediately make the archive copy:
+
+```bash
+cp hw4_skeleton/kernels/student_kernel.cu hw4_skeleton/kernels/iter_N_<title>.cu
+```
+
+Where `N` is the iteration number and `<title>` is the same short snake_case title used in the log header (e.g., `iter_6_cp_async_double_buffer.cu`). This file is permanent — do not delete or overwrite it regardless of whether the iteration is kept or reverted. It is a record of exactly what was attempted.
 
 ---
 
@@ -175,7 +185,7 @@ cd hw4_skeleton && make clean && make CUDA_ARCH=86 2>&1
 
 - If build succeeds: proceed to Step 7.
 - If build fails: fix the error and retry **once**.
-- If build fails a second time: **restore the backup** (`cp kernels/student_kernel_backup.cu kernels/student_kernel.cu`), log `Build failed: <error summary>` under `### Result` in `optimization_log.md`, increment the failure counter, go back to Step 2.
+- If build fails a second time: **restore the backup** (`cp kernels/student_kernel_backup.cu kernels/student_kernel.cu`). The archive file `iter_N_<title>.cu` stays — do not delete it. Log `Build failed: <error summary>` under `### Result`, increment the failure counter, go back to Step 2.
 
 ---
 
@@ -190,8 +200,8 @@ Read the full output. Parse every size line:
 Running size: NNN...   avg time: X.XXXXXXs, performance: YYY.YYY GFLOPS
 ```
 
-- If the output contains `verification failed`: **restore the backup**, log `Correctness failure at size X. Likely cause: <your best guess about the indexing/bounds bug>`. Go back to Step 2.
-- If the binary crashes or hangs: restore backup, log it, go back to Step 2.
+- If the output contains `verification failed`: **restore the backup** (`cp kernels/student_kernel_backup.cu kernels/student_kernel.cu`). The archive file stays. Log `Correctness failure at size X. Likely cause: <your best guess about the indexing/bounds bug>`. Go back to Step 2.
+- If the binary crashes or hangs: restore backup, archive stays, log it, go back to Step 2.
 
 ---
 
